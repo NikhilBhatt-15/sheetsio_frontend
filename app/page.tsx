@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import Navbar from './components/Navbar'
 import { ArrowRight, Table, Database, FileSpreadsheet, Share2, Workflow, LineChart } from "lucide-react";
 
 export default function Home() {
@@ -11,34 +12,7 @@ export default function Home() {
   
     <div className="min-h-screen bg-gradient-to-b from-emerald-50 via-white to-white">
       {/* Navigation */}
-      <nav className="border-b bg-white/50 backdrop-blur-sm fixed w-full z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              <FileSpreadsheet className="h-6 w-6 text-primary" />
-              <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-emerald-600">
-                TableSync
-              </h1>
-            </div>
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                className="text-gray-600 hover:text-primary"
-                onClick={() => router.push("/auth/login")}
-              >
-                Log in
-              </Button>
-              <Button 
-                variant="default"
-                onClick={() => router.push("/auth/signup")}
-                className="bg-primary hover:bg-primary/90"
-              >
-                Sign up free
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero Section */}
       <div className="pt-32 pb-16 px-4 sm:px-6 lg:px-8">
@@ -62,7 +36,7 @@ export default function Home() {
               <Button
                 size="lg"
                 className="text-lg px-8 py-6 bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-200 group"
-                onClick={() => router.push("/auth/login")}
+                onClick={() => router.push("/dashboard")}
               >
                 Try Now
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
@@ -117,7 +91,7 @@ export default function Home() {
               size="lg"
               variant="secondary"
               className="text-lg px-8 py-6 bg-white text-primary hover:bg-white/90"
-              onClick={() => router.push("/auth/login")}
+              onClick={() => router.push("/dashboard")}
             >
               Start Syncing Now
               <ArrowRight className="ml-2 h-5 w-5" />
