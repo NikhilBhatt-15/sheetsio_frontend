@@ -9,7 +9,7 @@ export default async function middleware(req: NextRequest){
         if(!req.cookies.get("user-token")){
             url.pathname = '/auth/login'
 
-            return NextResponse.rewrite(url)
+            return NextResponse.redirect(url)
         }
     }
     return NextResponse.next()
