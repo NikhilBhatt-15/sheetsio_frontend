@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import DynamicTable from "../components/DynamicTable";
 import { Input } from "@/components/ui/input";
 import {getSheetId} from "../utils/webSocketClient";
+import TableDashboard from "../components/TableDashboard";
 const Dashboard= ()=>{
   const [sheetId, setSheetId] = useState("");
   const [submittedSheetId, setSubmittedSheetId] = useState("");
@@ -45,7 +46,7 @@ const Dashboard= ()=>{
     <main className="container mx-auto py-10 px-4">
       <h1 className="text-2xl font-bold mb-6">Dynamic Table</h1>
       <p className="mb-6 text-muted-foreground">Create and edit tables or import data from Google Sheets.</p>
-      <DynamicTable />
+      <TableDashboard/>
     </main>
     </>
   )

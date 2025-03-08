@@ -8,9 +8,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { format } from "date-fns"
+import { format, set } from "date-fns"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { getSheetId } from "../utils/webSocketClient"
+import { toast } from "sonner"
 
 // Types based on the Mongoose schema
 type ColumnType = {
@@ -20,8 +22,7 @@ type ColumnType = {
 }
 
 type TableStructure = {
-  _id: string
-  userId: string
+  _id?: string
   tableName: string
   columns: ColumnType[]
 }
@@ -32,21 +33,21 @@ type RowData = {
 }
 
 type TableData = {
-  _id: string
+  _id?: string
   tableId: string
   rows: RowData[]
 }
 
 type GoogleSheetsData = {
   range: string
-  majorDimension: string
   values: string[][]
 }
 
 export default function DynamicTable({
   tableId,
   onConnect,
-}: { tableId?: string; onConnect?: (socket: WebSocket) => void }) {
+  sheeturl
+}: { tableId?: string; onConnect?: (socket: WebSocket) => void ; sheeturl?: string}) {
   const [tableStructure, setTableStructure] = useState<TableStructure | null>(null)
   const [tableData, setTableData] = useState<TableData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -67,11 +68,11 @@ export default function DynamicTable({
   useEffect(() => {
     if (tableId) {
       fetchTableData(tableId)
-    } else {
+    }
+     else {
       // Create a new empty table if no tableId is provided
       setTableStructure({
-        _id: "new",
-        userId: "current-user", // This would be replaced with actual user ID
+        _id:'new', // This would be replaced with actual user ID
         tableName: "New Table",
         columns: [{ name: "Column 1", type: "text" }],
       })
@@ -90,36 +91,28 @@ export default function DynamicTable({
   const fetchTableData = async (id: string) => {
     try {
       setLoading(true)
-
-      // These would be actual API calls
-      // const structureResponse = await fetch(`/api/tables/${id}`)
-      // const structure = await structureResponse.json()
-      // const dataResponse = await fetch(`/api/tableData/${id}`)
-      // const data = await dataResponse.json()
-
-      // Mock data for demonstration
-      const structure: TableStructure = {
-        _id: id,
-        userId: "user123",
-        tableName: "Sample Table",
-        columns: [
-          { name: "Name", type: "text" },
-          { name: "Date", type: "date" },
-          { name: "Notes", type: "text" },
-        ],
-      }
-
-      const data: TableData = {
-        _id: "data123",
-        tableId: id,
-        rows: [
-          { _id: "row1", data: { Name: "John Doe", Date: "2023-03-15", Notes: "Meeting notes" } },
-          { _id: "row2", data: { Name: "Jane Smith", Date: "2023-03-20", Notes: "Follow-up required" } },
-        ],
-      }
-
-      setTableStructure(structure)
-      setTableData(data)
+      fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tablesync/read/${id}`,{
+        method:"GET",
+        credentials:"include"
+      }).then((res)=>res.json())
+      .then((data)=>{
+        console.log(data);
+        setTableStructure({
+          tableName: data.table.tableName,
+          columns: data.table.columns,
+        });
+        setTableData({
+          tableId: data.table._id,
+          rows: data.rows.map((row: any)=>{
+            return {
+              data: row.data
+            }
+          }),
+        });
+      }).catch((err)=>{
+        console.log(err);
+      })
+      
     } catch (error) {
       console.error("Error fetching table data:", error)
     } finally {
@@ -132,46 +125,66 @@ export default function DynamicTable({
     if (!tableStructure || !tableData) return
 
     try {
-      // These would be actual API calls
-      // if (tableStructure._id === "new") {
-      //   // Create new table
-      //   const structureResponse = await fetch('/api/tables', {
-      //     method: 'POST',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify(tableStructure)
-      //   })
-      //   const newStructure = await structureResponse.json()
-      //   setTableStructure(newStructure)
-      //
-      //   // Create table data with the new tableId
-      //   const dataToSave = { ...tableData, tableId: newStructure._id }
-      //   const dataResponse = await fetch('/api/tableData', {
-      //     method: 'POST',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify(dataToSave)
-      //   })
-      //   const newData = await dataResponse.json()
-      //   setTableData(newData)
-      // } else {
-      //   // Update existing table
-      //   await fetch(`/api/tables/${tableStructure._id}`, {
-      //     method: 'PUT',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify(tableStructure)
-      //   })
-      //
-      //   await fetch(`/api/tableData/${tableData._id}`, {
-      //     method: 'PUT',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify(tableData)
-      //   })
-      // }
+      if(tableStructure._id === "new"){
+        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tablesync/create`,{
+          method:"POST",
+          credentials:"include",
+          headers:{
+            "Content-Type":"application/json"
+          },
+          body:JSON.stringify({
+            tableName:tableStructure.tableName,
+            columns:tableStructure.columns,
+          })
+        }).then((res)=>res.json())
+        .then((data)=>{
+          setTableStructure({
+            _id:data.table._id,
+            tableName: data.table.tableName,
+            columns: data.table.columns,
+          })
+          setTableData({
+            tableId: data.table._id,
+            rows: tableData.rows
+          })
+          console.log(data);
+        }).catch((err)=>{
+          toast("Error saving table structure"+err);
+          console.log(err);
+        })
+      }
+      fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tablesync/update/${tableStructure._id}`,{
+        method:"PUT",
+        credentials:"include",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          rows:tableData.rows
+        })
+      }).then((res)=>res.json())
+      .then((data)=>{
+        setTableData({
+          tableId: data.table._id,
+          rows: data.rows.map((row: any)=>{
+            return {
+              data: row.data
+            }
+        })
+      })
+      toast("Table saved successfully")
+    }).catch((err)=>{ 
+        toast("Error saving table data"); 
+        console.log(err);
+      }) 
+
 
       console.log("Table saved successfully")
       // For demonstration, just log the data
       console.log("Structure:", tableStructure)
       console.log("Data:", tableData)
     } catch (error) {
+      toast("Error saving table data")
       console.error("Error saving table data:", error)
     }
   }
@@ -357,7 +370,7 @@ export default function DynamicTable({
 
   useEffect(() => {
     // Create WebSocket connection
-    const ws = new WebSocket("ws://localhost:3001") // Replace with your actual WebSocket URL
+    const ws = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BACKEND_URL}`) // Replace with your actual WebSocket URL
 
     ws.onopen = () => {
       console.log("WebSocket Connected")
@@ -375,6 +388,7 @@ export default function DynamicTable({
     }
 
     ws.onerror = (error) => {
+      toast("Error connecting to WebSocket")
       console.error("WebSocket Error:", error)
     }
 
@@ -391,19 +405,23 @@ export default function DynamicTable({
 
     return () => {
       ws.close()
+      setSocketConnected(false)
+      setSocket(null)
     }
-  }, [onConnect])
+  },[onConnect])
 
   const importFromGoogleSheets = useCallback(() => {
-    if (!socket || !socketConnected || !sheetsUrl) return
+    if (!socket || !socketConnected || !sheetsUrl){
+      return
+    } 
 
     setIsImporting(true)
 
     // Send the Google Sheets URL to the server
     socket.send(
       JSON.stringify({
-        type: "import_google_sheets",
-        url: sheetsUrl,
+        type: "connect",
+        sheetId: getSheetId(sheetsUrl),
       }),
     )
 
@@ -444,14 +462,11 @@ export default function DynamicTable({
 
         // Update table structure and data
         setTableStructure({
-          _id: tableId || "new",
-          userId: "current-user",
           tableName: "Google Sheets Import",
           columns,
         })
 
         setTableData({
-          _id: tableId || "new",
           tableId: tableId || "new",
           rows,
         })
@@ -584,15 +599,15 @@ export default function DynamicTable({
               <TableRow>
                 <TableHead className="w-12 bg-muted/40">#</TableHead>
                 {tableStructure?.columns.map((column, colIndex) => (
-                  <TableHead key={colIndex} className="min-w-[150px] bg-muted/40">
+                  <TableHead key={colIndex} className="min-w-[150px] bg-muted/40 border-2">
                     <div className="flex justify-between items-center">
                       <span>{column.name}</span>
                       <div className="flex items-center">
                         <span className="text-xs text-muted-foreground mr-2">{column.type}</span>
                         <Button
-                          variant="ghost"
+                          variant="default"
                           size="icon"
-                          className="h-6 w-6 opacity-0 group-hover:opacity-100 hover:opacity-100"
+                          className="h-6 w-6 opacity-20 group-hover:opacity-100 hover:opacity-100"
                           onClick={() => deleteColumn(column.name)}
                         >
                           <Trash2 className="h-3 w-3" />
@@ -606,7 +621,7 @@ export default function DynamicTable({
             <TableBody>
               {tableData?.rows.map((row, rowIndex) => (
                 <TableRow key={rowIndex} className="group">
-                  <TableCell className="font-medium bg-muted/40">
+                  <TableCell className="font-medium bg-muted/40 border-2">
                     <div className="flex justify-between items-center">
                       <span>{rowIndex + 1}</span>
                       <Button
@@ -626,7 +641,7 @@ export default function DynamicTable({
                     return (
                       <TableCell
                         key={column.name}
-                        className="p-0 h-10 min-w-[150px] cursor-text"
+                        className="p-0 h-10 min-w-[150px] cursor-text border-2"
                         onClick={() => handleCellClick(rowIndex, column.name, column.type)}
                       >
                         {isActiveCell ? (
