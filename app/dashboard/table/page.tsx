@@ -1,23 +1,12 @@
-"use client"
-import DynamicTable from "@/app/components/DynamicTable"
-import { useSearchParams } from "next/navigation"
-const Page = ()=>{
-    const searchParams= useSearchParams();
-    const tableId = searchParams.get("tableId");
-    if(tableId){
-        return(
-            <DynamicTable tableId={tableId} />
-        )
-    }
-    const sheetId = searchParams.get("sheetId");
-    if(sheetId){
-        return(
-            <DynamicTable sheetId={sheetId} />
-        )
-    }
-    return(
-        <DynamicTable/>
-    )
-}
+import { Suspense } from "react";
+import TablePage from "./TablePage";
+
+const Page = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <TablePage />
+    </Suspense>
+  );
+};
 
 export default Page;
