@@ -141,13 +141,12 @@ export default function DynamicTable({
         });
   
         const createData = await createResponse.json();
-        console.log("Table created successfully:", createData);
         setTableStructure({
           _id: createData.table._id,
           tableName: createData.table.tableName,
           columns: createData.table.columns,
         });
-        console.log("Table created successfully:", tableStructure);
+
         setTableData({
           tableId: createData.table._id,
           rows: tableData.rows,
@@ -165,18 +164,12 @@ export default function DynamicTable({
         },
         body: JSON.stringify({
           rows: tableData.rows,
+          columns: tableStructure.columns,
         }),
       });
   
       const updateData = await updateResponse.json();
-  
-      setTableData({
-        tableId: updateData.table._id,
-        rows: updateData.rows.map((row: any) => ({
-          data: row.data,
-        })),
-      });
-  
+
       toast("Table saved successfully");
       console.log("Table updated successfully:", updateData);
     } catch (error) {

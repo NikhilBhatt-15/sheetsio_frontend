@@ -27,7 +27,7 @@ const Navbar  = ()=>{
                 onClick={() => router.push("/auth/signup")}
                 className="bg-primary hover:bg-primary/90"
               >
-                Sign up free
+                Sign up 
               </Button>
             </div>
           </div>
