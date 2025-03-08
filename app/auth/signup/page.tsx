@@ -19,6 +19,8 @@ export default function SignupPage() {
       if(data.success){
         setLoading(false);
         router.push("/dashboard");
+      }else{
+        setLoading(false);
       }
     }).catch((err)=>{
       console.log(err);

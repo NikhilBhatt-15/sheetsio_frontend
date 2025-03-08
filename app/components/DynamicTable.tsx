@@ -99,6 +99,7 @@ export default function DynamicTable({
       .then((data)=>{
         console.log(data);
         setTableStructure({
+          _id:data.table._id,
           tableName: data.table.tableName,
           columns: data.table.columns,
         });
@@ -123,72 +124,67 @@ export default function DynamicTable({
 
   // Save table data - would be replaced with actual API call
   const saveTableData = async () => {
-    if (!tableStructure || !tableData) return
-
+    if (!tableStructure || !tableData) return;
+  
     try {
-      if(tableStructure._id === "new"){
-        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tablesync/create`,{
-          method:"POST",
-          credentials:"include",
-          headers:{
-            "Content-Type":"application/json"
+      if (tableStructure._id === "new") {
+        // Create a new table
+        const createResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tablesync/create`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
           },
-          body:JSON.stringify({
-            tableName:tableStructure.tableName,
-            columns:tableStructure.columns,
-          })
-        }).then((res)=>res.json())
-        .then((data)=>{
-          setTableStructure({
-            _id:data.table._id,
-            tableName: data.table.tableName,
-            columns: data.table.columns,
-          })
-          setTableData({
-            tableId: data.table._id,
-            rows: tableData.rows
-          })
-          console.log(data);
-        }).catch((err)=>{
-          toast("Error saving table structure"+err);
-          console.log(err);
-        })
-      }
-      fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tablesync/update/${tableStructure._id}`,{
-        method:"PUT",
-        credentials:"include",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-          rows:tableData.rows
-        })
-      }).then((res)=>res.json())
-      .then((data)=>{
+          body: JSON.stringify({
+            tableName: tableStructure.tableName,
+            columns: tableStructure.columns,
+          }),
+        });
+  
+        const createData = await createResponse.json();
+        console.log("Table created successfully:", createData);
+        setTableStructure({
+          _id: createData.table._id,
+          tableName: createData.table.tableName,
+          columns: createData.table.columns,
+        });
+        console.log("Table created successfully:", tableStructure);
         setTableData({
-          tableId: data.table._id,
-          rows: data.rows.map((row: any)=>{
-            return {
-              data: row.data
-            }
-        })
-      })
-      toast("Table saved successfully")
-    }).catch((err)=>{ 
-        toast("Error saving table data"); 
-        console.log(err);
-      }) 
-
-
-      console.log("Table saved successfully")
-      // For demonstration, just log the data
-      console.log("Structure:", tableStructure)
-      console.log("Data:", tableData)
+          tableId: createData.table._id,
+          rows: tableData.rows,
+        });
+  
+        console.log("Table created successfully:", createData);
+      }
+  
+      // Update the table data
+      const updateResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tablesync/update/${tableStructure._id}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rows: tableData.rows,
+        }),
+      });
+  
+      const updateData = await updateResponse.json();
+  
+      setTableData({
+        tableId: updateData.table._id,
+        rows: updateData.rows.map((row: any) => ({
+          data: row.data,
+        })),
+      });
+  
+      toast("Table saved successfully");
+      console.log("Table updated successfully:", updateData);
     } catch (error) {
-      toast("Error saving table data")
-      console.error("Error saving table data:", error)
+      toast("Error saving table data");
+      console.error("Error saving table data:", error);
     }
-  }
+  };
 
   // Add a new column
   const addColumn = () => {
@@ -457,16 +453,17 @@ export default function DynamicTable({
           for (let j = 0; j < headers.length; j++) {
             rowData[headers[j]] = data.values[i][j] || ""
           }
-
+          
           rows.push({ data: rowData })
         }
 
         // Update table structure and data
         setTableStructure({
+          _id: "new",
           tableName: "Google Sheets Import",
           columns,
         })
-
+        console.log("Table Structure:", tableStructure)
         setTableData({
           tableId: tableId || "new",
           rows,
