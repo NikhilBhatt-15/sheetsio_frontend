@@ -1,9 +1,8 @@
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { FileSpreadsheet } from "lucide-react"
-import { JSX } from "react";
 
-const navbar  = ()=>{
+const Navbar  = ()=>{
     const router = useRouter();
     return (
     <nav className="border-b bg-white/50 backdrop-blur-sm fixed w-full z-10">
@@ -37,4 +36,4 @@ const navbar  = ()=>{
     )
 }
 
-export default navbar;
+export default Navbar;

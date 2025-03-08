@@ -1,7 +1,5 @@
 "use client";
 import Login from '@/app/components/LoginComponent';
-import axios from 'axios';
-import { h1 } from 'motion/react-client';
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from 'react';
 import { toast, Toaster } from 'sonner';

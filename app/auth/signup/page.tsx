@@ -2,7 +2,7 @@
 
 import Signup from "@/app/components/SignupComponent";
 import { useRouter } from "next/navigation";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 

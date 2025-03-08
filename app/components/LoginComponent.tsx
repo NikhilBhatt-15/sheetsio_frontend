@@ -10,13 +10,7 @@ import { useRouter } from "next/navigation";
 export default function Login({ onSubmit }: { onSubmit: (email: string, password: string) => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const handleSubmit = async () => {
-    setLoading(true);
-    await onSubmit(email, password);
-    setLoading(false);
-  };
 
   return (
     <Card className="mx-auto max-w-sm">
@@ -37,13 +31,13 @@ export default function Login({ onSubmit }: { onSubmit: (email: string, password
               value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           <Button type="submit" className="w-full" onClick={() => onSubmit(email, password)}>
-          {loading ? "Logging in..." : "Login"}
+          Login
           </Button>
         </div>
       </CardContent>
       <CardFooter className="flex justify-center">
         <Button variant="ghost" className="text-primary hover:text-primary" onClick={() => router.push("/auth/signup")}>
-          Don't have an account? Sign up    
+          Don&apos;t have an account? Sign up    
         </Button>
       </CardFooter>
     </Card>
