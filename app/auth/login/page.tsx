@@ -34,6 +34,7 @@ const Page = () => {
             "credentials": "include"
         }).then(res => res.json()).then(data => {
             if (data.success) {
+                localStorage.setItem('token', data.token);
                 router.push('/dashboard');
             } else {
                 toast(data.message);

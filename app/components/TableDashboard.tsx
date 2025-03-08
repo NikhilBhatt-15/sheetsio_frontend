@@ -8,8 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { format } from "date-fns"
-import DynamicTable from './DynamicTable'
 import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 // Types for the table listings
 type TableListing = {
@@ -23,15 +23,14 @@ type TableListing = {
 export default function TableDashboard() {
   const [recentTables, setRecentTables] = useState<TableListing[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedTableId, setSelectedTableId] = useState<string | null>(null)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [newTableName, setNewTableName] = useState("")
   const [sheetsUrl, setSheetsUrl] = useState("")
-  const [selectedSheeturl, setSelectedSheeturl] = useState<string | null>(null)
   const [isCreatingTable, setIsCreatingTable] = useState(false)
 
   // Load recent tables
+  const router = useRouter();
   useEffect(() => {
     fetchRecentTables()
   }, [])
@@ -84,9 +83,8 @@ export default function TableDashboard() {
         }).then((res)=>res.json())
         .then((data)=>{
             console.log(data);
-            setSelectedTableId(data.table._id)
-            setNewTableName("")
             setCreateDialogOpen(false)
+            router.push("/dashboard/table?tableId="+data.table._id)
         }).catch((err)=>{
             console.log(err);
             toast("error"+"Error creating table")
@@ -99,42 +97,10 @@ export default function TableDashboard() {
     }
   }
 
-  // Handle import from Google Sheets
- 
-
   // Back to dashboard
-  const handleBackToDashboard = () => {
-    setSelectedTableId(null)
-    setSelectedSheeturl(null)
-    fetchRecentTables()
-  }
 
   // If a table is selected, show the dynamic table component
-  if (selectedTableId) {
-    return (
-      <div>
-        <div className="mb-4">
-          <Button variant="ghost" onClick={handleBackToDashboard} className="mb-4">
-            ← Back to Dashboard
-          </Button>
-        </div>
-        <DynamicTable tableId={selectedTableId}  />
-      </div>
-    )
-  }
 
-  if(selectedSheeturl){
-    return (
-        <div>
-          <div className="mb-4">
-            <Button variant="ghost" onClick={handleBackToDashboard} className="mb-4">
-              ← Back to Dashboard
-            </Button>
-          </div>
-          <DynamicTable  sheeturl={sheetsUrl}  />
-        </div>
-      )
-  }
 
   return (
     <div>
@@ -203,8 +169,10 @@ export default function TableDashboard() {
               <DialogFooter>
                 <Button onClick={()=>{
                     // i want to load dynamic table
-                    setSelectedSheeturl(sheetsUrl)
+                    const sheetId = sheetsUrl.split("/d/")[1].split("/")[0]
+                    router.push("/dashboard/table?sheetId="+sheetId)
                     setImportDialogOpen(false)
+
                 }} disabled={!sheetsUrl.trim()}>
                   Import
                 </Button>
@@ -252,7 +220,7 @@ export default function TableDashboard() {
                 </p>
               </CardContent>
               <CardFooter>
-                <Button variant="default" className="w-full" onClick={() => setSelectedTableId(table._id)}>
+                <Button variant="default" className="w-full" onClick={() => router.push("/dashboard/table?tableId="+table._id)}>
                   Open Table
                 </Button>
               </CardFooter>

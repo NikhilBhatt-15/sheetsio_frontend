@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { format} from "date-fns"
+import { format, set} from "date-fns"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { getSheetId } from "../utils/webSocketClient"
@@ -46,9 +46,8 @@ type GoogleSheetsData = {
 
 export default function DynamicTable({
   tableId,
-  onConnect,
-  sheeturl
-}: { tableId?: string; onConnect?: (socket: WebSocket) => void ; sheeturl?: string}) {
+  sheetId
+}: { tableId?: string; sheetId?: string}) {
   const [tableStructure, setTableStructure] = useState<TableStructure | null>(null)
   const [tableData, setTableData] = useState<TableData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -61,6 +60,7 @@ export default function DynamicTable({
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
   const [socket, setSocket] = useState<WebSocket | null>(null)
+  const wsRef = useRef<WebSocket | null>(null)
   const [socketConnected, setSocketConnected] = useState(false)
 
   const inputRef = useRef<HTMLInputElement>(null)
@@ -69,8 +69,7 @@ export default function DynamicTable({
   useEffect(() => {
     if (tableId) {
       fetchTableData(tableId)
-    }
-     else {
+    }else {
       // Create a new empty table if no tableId is provided
       setTableStructure({
         _id:'new', // This would be replaced with actual user ID
@@ -87,7 +86,7 @@ export default function DynamicTable({
       setLoading(false)
     }
   }, [tableId])
-
+  
   // Mock function to fetch table data - would be replaced with actual API call
   const fetchTableData = async (id: string) => {
     try {
@@ -368,14 +367,11 @@ export default function DynamicTable({
   useEffect(() => {
     // Create WebSocket connection
     const ws = new WebSocket(`${process.env.NEXT_PUBLIC_WS_BACKEND_URL}`) // Replace with your actual WebSocket URL
-
+    wsRef.current = ws
     ws.onopen = () => {
       console.log("WebSocket Connected")
       setSocketConnected(true)
       setSocket(ws)
-      if (onConnect) {
-        onConnect(ws)
-      }
     }
 
     ws.onclose = () => {
@@ -396,26 +392,28 @@ export default function DynamicTable({
           handleGoogleSheetsData(data.payload)
         }
       } catch (error) {
-        console.error("Error parsing WebSocket message:", error)
+        console.log("Error parsing WebSocket message:", error)
       }
     }
 
     return () => {
-      ws.close()
+      if(wsRef.current){
+        wsRef.current.close()
+      }
       setSocketConnected(false)
       setSocket(null)
     }
-  },[onConnect])
+  },[])
 
   const importFromGoogleSheets = useCallback(() => {
-    if (!socket || !socketConnected || !sheetsUrl){
+    if (!wsRef.current || !socketConnected || !sheetsUrl){
       return
     } 
 
     setIsImporting(true)
 
     // Send the Google Sheets URL to the server
-    socket.send(
+    wsRef.current.send(
       JSON.stringify({
         type: "connect",
         sheetId: getSheetId(sheetsUrl),
@@ -476,7 +474,7 @@ export default function DynamicTable({
     },
     [tableId],
   )
-
+ 
   if (loading) {
     return <div className="flex justify-center items-center h-64">Loading table data...</div>
   }
