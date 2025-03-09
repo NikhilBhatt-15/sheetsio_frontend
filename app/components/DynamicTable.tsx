@@ -9,12 +9,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { format, set} from "date-fns"
+import { format} from "date-fns"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { getSheetId } from "../utils/webSocketClient"
 import { toast } from "sonner"
-import { table } from "console"
+
 
 // Types based on the Mongoose schema
 type ColumnType = {
@@ -181,6 +181,7 @@ export default function DynamicTable({
           });
           toast("Table saved successfully");
         console.log("Table updated successfully:", updateData);
+        }
 
       }
       else{
@@ -216,7 +217,7 @@ export default function DynamicTable({
   
       // Update the table data
       
-    }} catch (error) {
+    } catch (error) {
       toast("Error saving table data");
       console.error("Error saving table data:", error);
     }
@@ -258,11 +259,11 @@ export default function DynamicTable({
   }
 
   // Delete a column
-  const deleteColumn = (columnName: string) => {
+  const deleteColumn = (colIndex:number) => {
     if (!tableStructure || !tableData) return
 
     // Remove column from structure
-    const updatedColumns = tableStructure.columns.filter((col) => col.name !== columnName)
+    const updatedColumns = tableStructure.columns.filter((col,index) => index!==colIndex)
 
     if (updatedColumns.length === 0) {
       alert("Cannot delete the last column")
@@ -270,6 +271,7 @@ export default function DynamicTable({
     }
 
     // Remove column data from all rows
+    const columnName = tableStructure.columns[colIndex].name
     const updatedRows = tableData.rows.map((row) => {
       const { [columnName]: removed, ...restData } = row.data
       return {
@@ -308,11 +310,6 @@ export default function DynamicTable({
   // Delete a row
   const deleteRow = (rowIndex: number) => {
     if (!tableData) return
-
-    if (tableData.rows.length === 1) {
-      alert("Cannot delete the last row")
-      return
-    }
 
     const updatedRows = [...tableData.rows]
     updatedRows.splice(rowIndex, 1)
@@ -663,6 +660,7 @@ export default function DynamicTable({
                 <TableHead className="w-12 bg-muted/40">#</TableHead>
                 {tableStructure?.columns.map((column, colIndex) => (
                   <TableHead key={colIndex} className="min-w-[150px] bg-muted/40 border-2">
+                    {/* Needs to be fixed */}
                     <div className="flex justify-between items-center">
                       <span>{column.name}</span>
                       <div className="flex items-center">
@@ -671,7 +669,7 @@ export default function DynamicTable({
                           variant="default"
                           size="icon"
                           className="h-6 w-6 opacity-20 group-hover:opacity-100 hover:opacity-100"
-                          onClick={() => deleteColumn(column.name)}
+                          onClick={() => deleteColumn(colIndex)}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
