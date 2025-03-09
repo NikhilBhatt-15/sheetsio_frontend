@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect, useRef, useCallback } from "react"
-import { Plus, Trash2, Save, Calendar, FileSpreadsheet, Loader2 } from "lucide-react"
+import { Plus, Trash2, Save, Calendar, FileSpreadsheet, Loader2, FolderPen} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -14,6 +14,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { getSheetId } from "../utils/webSocketClient"
 import { toast } from "sonner"
+import { table } from "console"
 
 // Types based on the Mongoose schema
 type ColumnType = {
@@ -62,6 +63,8 @@ export default function DynamicTable({
   const [socket, setSocket] = useState<WebSocket | null>(null)
   const wsRef = useRef<WebSocket | null>(null)
   const [socketConnected, setSocketConnected] = useState(false)
+  const [tableName, setTableName] = useState("")
+  const [isEditingName, setIsEditingName] = useState(false)
 
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -124,7 +127,7 @@ export default function DynamicTable({
   // Save table data - would be replaced with actual API call
   const saveTableData = async () => {
     if (!tableStructure || !tableData) return;
-  
+    console.log("Important log ",tableStructure, tableData);
     try {
       if (tableStructure._id === "new") {
         // Create a new table
@@ -152,27 +155,68 @@ export default function DynamicTable({
           rows: tableData.rows,
         });
   
-        console.log("Table created successfully:", createData);
+        const updateResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tablesync/update/${createData.table._id}`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            rows: tableData.rows,
+            columns: tableStructure.columns,
+            tableName: tableStructure.tableName,
+          }),
+        });
+    
+        const updateData = await updateResponse.json();
+        if(updateData.success){
+          setTableStructure({
+            _id: updateData.table._id,
+            tableName: updateData.table.tableName,
+            columns: updateData.table.columns,
+          });
+          setTableData({
+            tableId: updateData.table._id,
+            rows: updateData.rows,
+          });
+          toast("Table saved successfully");
+        console.log("Table updated successfully:", updateData);
+
+      }
+      else{
+        const updateResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tablesync/update/${tableStructure._id}`, {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            rows: tableData.rows,
+            columns: tableStructure.columns,
+            tableName: tableStructure.tableName,
+          }),
+        });
+    
+        const updateData = await updateResponse.json();
+        if(updateData.success){
+          setTableStructure({
+            _id: updateData.table._id,
+            tableName: updateData.table.tableName,
+            columns: updateData.table.columns,
+          });
+          setTableData({
+            tableId: updateData.table._id,
+            rows: updateData.rows,
+          });
+          toast("Table saved successfully");
+        console.log("Table updated successfully:", updateData);
+        }
+        
       }
   
       // Update the table data
-      const updateResponse = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/tablesync/update/${tableStructure._id}`, {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          rows: tableData.rows,
-          columns: tableStructure.columns,
-        }),
-      });
-  
-      const updateData = await updateResponse.json();
-
-      toast("Table saved successfully");
-      console.log("Table updated successfully:", updateData);
-    } catch (error) {
+      
+    }} catch (error) {
       toast("Error saving table data");
       console.error("Error saving table data:", error);
     }
@@ -456,7 +500,7 @@ export default function DynamicTable({
         })
         console.log("Table Structure:", tableStructure)
         setTableData({
-          tableId: tableId || "new",
+          tableId:"new", 
           rows,
         })
       } catch (error) {
@@ -465,7 +509,7 @@ export default function DynamicTable({
         setIsImporting(false)
       }
     },
-    [tableId],
+    [],
   )
  
   if (loading) {
@@ -479,7 +523,37 @@ export default function DynamicTable({
   return (
     <div className="w-full overflow-auto border rounded-md">
       <div className="p-4 flex justify-between items-center bg-muted/40 border-b">
-        <h2 className="text-lg font-semibold">{tableStructure?.tableName}</h2>
+        <div className="flex items-center gap-2">{
+          isEditingName ? (
+
+            <Input
+              value={tableName}
+              onChange={(e) => setTableName(e.target.value)}
+              placeholder={tableStructure.tableName}
+              onBlur={() => setIsEditingName(false)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setIsEditingName(false)
+                  if (tableName.trim() !== "") {
+                    const tableStructureCopy = { ...tableStructure }
+                    tableStructureCopy.tableName = tableName
+                    setTableStructure(tableStructureCopy)
+                  }
+                  
+                }
+              }}
+            />
+          ) : (
+            <h2 className="text-lg font-semibold">{tableStructure.tableName}</h2>
+          )}
+        <Button variant="ghost"
+          size="icon"
+          className="h-6 w-6 opacity-20 group-hover:opacity-100 hover:opacity-100"
+          onClick={()=>{
+            setIsEditingName(true)
+          }}
+        ><FolderPen/></Button></div>
+
         <div className="flex gap-2">
           <Dialog open={addColumnDialogOpen} onOpenChange={setAddColumnDialogOpen}>
             <DialogTrigger asChild>
