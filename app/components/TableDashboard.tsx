@@ -45,6 +45,9 @@ export default function TableDashboard() {
       }).then((res)=>res.json())
         .then((data)=>{
             console.log(data);
+            if(data.tables.length==0){
+              setRecentTables([])
+            }
             setRecentTables(data.tables)
         }).catch((err)=>{
             console.log(err);
