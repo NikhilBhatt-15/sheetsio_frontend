@@ -1,36 +1,121 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RevoeAI Frontend
 
-## Getting Started
+This is the frontend part of the RevoeAI assignment. It is built using React and Next.js, and it includes various components and pages to manage and display dynamic tables.
 
-First, run the development server:
+## Table of Contents
 
-```bash
+- [Installation](#installation)
+- [Usage](#usage)
+- [Technologies Used](#technologies-used)
+- [What This Application Does](#what-this-application-does)
+- [Components](#components)
+- [Pages](#pages)
+- [API Endpoints](#api-endpoints)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Installation
+
+To install the dependencies and set up the project, follow these steps:
+
+1. Clone the repository:
+
+   ```sh
+   git clone https://github.com/yourusername/revoeai_assignment.git
+   cd revoeai_assignment/frontend
+   ```
+
+2. Install the dependencies:
+
+   ```sh
+   npm install
+   ```
+
+3. Create a `.env.local` file in the root directory and add the following environment variables:
+   ```env
+   NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
+   NEXT_PUBLIC_WS_BACKEND_URL=ws://localhost:5000
+   ```
+
+## Usage
+
+To start the development server, run:
+
+```sh
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+To build the application for production, run:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```sh
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+To start the production server, run:
 
-## Learn More
+```sh
+npm start
+```
 
-To learn more about Next.js, take a look at the following resources:
+To lint the code, run:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```sh
+npm run lint
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Technologies Used
 
-## Deploy on Vercel
+This project uses the following technologies:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **React**: A JavaScript library for building user interfaces.
+- **Next.js**: A React framework for server-side rendering and generating static websites.
+- **TypeScript**: A typed superset of JavaScript that compiles to plain JavaScript.
+- **Tailwind CSS**: A utility-first CSS framework for rapid UI development.
+- **Axios**: A promise-based HTTP client for making API requests.
+- **Socket.IO**: A library for real-time web applications.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## What This Application Does
+
+The RevoeAI frontend application provides a user interface for managing and displaying dynamic tables. It includes features such as:
+
+- User authentication (login and logout).
+- Displaying a list of tables fetched from the backend.
+- Viewing details of a specific table.
+- A dashboard displaying user-specific data.
+- Real-time updates using WebSockets.
+
+## Components
+
+This section describes the various components used in the project.
+
+- **TableComponent**: Displays dynamic tables fetched from the backend.
+- **AuthComponent**: Handles user authentication (login, logout).
+- **Navbar**: Navigation bar for the application.
+- **Footer**: Footer component for the application.
+- **Dashboard**: Main dashboard component displaying user-specific data.
+
+## Pages
+
+This section describes the various pages available in the project.
+
+- **/login**: Login page for user authentication.
+- **/dashboard**: Dashboard page displaying user-specific data.
+- **/tables**: Page displaying a list of tables.
+- **/tables/[id]**: Page displaying a specific table by ID.
+
+## API Endpoints
+
+This section describes the API endpoints used in the project.
+
+- **GET /api/tables**: Fetches a list of tables.
+- **GET /api/tables/[id]**: Fetches a specific table by ID.
+- **POST /api/auth/login**: Authenticates a user and returns a JWT token.
+- **POST /api/auth/logout**: Logs out a user by clearing the JWT token.
+
+## Contributing
+
+Contributions are welcome! Please read the [contributing guidelines](CONTRIBUTING.md) first.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
