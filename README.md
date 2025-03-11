@@ -1,6 +1,6 @@
-# RevoeAI Frontend
+# TableSync
 
-This is the frontend part of the RevoeAI assignment. It is built using React and Next.js, and it includes various components and pages to manage and display dynamic tables.
+This is the frontend part of the TableSync. It is built using React and Next.js, and it includes various components and pages to manage and display dynamic tables.
 
 ## Table of Contents
 
@@ -21,7 +21,7 @@ To install the dependencies and set up the project, follow these steps:
 1. Clone the repository:
 
    ```sh
-   git clone https://github.com/yourusername/revoeai_assignment.git
+   git clone https://github.com/NikhilBhatt-15/sheetsio_frontend.git
    cd revoeai_assignment/frontend
    ```
 
